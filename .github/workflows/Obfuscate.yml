@@ -5,8 +5,8 @@ on:
     branches:
       - main
   schedule:
-        # Runs everyday at 1:00 AM
-        - cron: "0 1 * * *"
+    # Runs everyday at 1:00 AM
+    - cron: "0 1 * * *"
 
 permissions:
   contents: write
@@ -23,10 +23,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "latest"
+          cache: "npm" # 缓存 npm 依赖
 
       - name: Install dependencies
-        run: |
-          npm install -g javascript-obfuscator
+        run: npm install javascript-obfuscator
 
       - name: Clone BPB workjs
         run: |
@@ -34,17 +34,16 @@ jobs:
 
       - name: Obfuscate BPB worker js
         run: |
-          javascript-obfuscator origin.js --output _worker.js \
+          npx javascript-obfuscator origin.js --output _worker.js \
           --compact true \
           --control-flow-flattening true \
-          --control-flow-flattening-threshold 1 \
-          --dead-code-injection true \
-          --dead-code-injection-threshold 1 \
+          --control-flow-flattening-threshold 0.5 \ # 降低阈值
+          --dead-code-injection false \ # 禁用 dead-code-injection
           --identifier-names-generator hexadecimal \
           --rename-globals true \
           --string-array true \
           --string-array-encoding 'rc4' \
-          --string-array-threshold 1 \
+          --string-array-threshold 0.5 \ # 降低阈值
           --transform-object-keys true \
           --unicode-escape-sequence true
 
