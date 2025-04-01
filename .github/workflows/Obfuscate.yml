@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    # Runs everyday at 1:00 AM
+    # Runs every day at 1:00 AM
     - cron: "0 1 * * *"
 
 permissions:
@@ -22,11 +22,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "latest"
-          cache: "npm" # 缓存 npm 依赖
+          node-version: "18" # Use a stable version instead of "latest"
 
-      - name: Install dependencies
-        run: npm install javascript-obfuscator
+      - name: Install javascript-obfuscator
+        run: npm install -g javascript-obfuscator
 
       - name: Clone BPB workjs
         run: |
@@ -34,18 +33,17 @@ jobs:
 
       - name: Obfuscate BPB worker js
         run: |
-          npx javascript-obfuscator origin.js --output _worker.js \
+          javascript-obfuscator origin.js --output _worker.js \
           --compact true \
-          --control-flow-flattening true \
-          --control-flow-flattening-threshold 0.5 \ # 降低阈值
-          --dead-code-injection false \ # 禁用 dead-code-injection
+          --control-flow-flattening false \ # Disable heavy transformations
+          --dead-code-injection false \ # Disable heavy transformations
           --identifier-names-generator hexadecimal \
           --rename-globals true \
           --string-array true \
-          --string-array-encoding 'rc4' \
-          --string-array-threshold 0.5 \ # 降低阈值
-          --transform-object-keys true \
-          --unicode-escape-sequence true
+          --string-array-encoding 'base64' \ # Use a lighter encoding
+          --string-array-threshold 0.75 \ # Reduce threshold
+          --transform-object-keys false \ # Disable heavy transformations
+          --unicode-escape-sequence false # Disable heavy transformations
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
